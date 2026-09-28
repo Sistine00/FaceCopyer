@@ -1,0 +1,154 @@
+from shutil import which
+
+from facefusion import ffmpeg_builder
+from facefusion.ffmpeg_builder import chain, concat, convert_color_space, keep_video_alpha, restrict_color_transfer, run, seek_to, select_frame_range, set_audio_quality, set_audio_sample_size, set_faststart, set_output_format, set_stream_mode, set_thread_count, set_video_encoder, set_video_fps, set_video_quality, set_video_tag
+
+
+def test_run() -> None:
+	assert run([]) == [ which('ffmpeg'), '-loglevel', 'error' ]
+
+
+def test_chain() -> None:
+	assert chain(
+		ffmpeg_builder.set_input('input.mp4'),
+		ffmpeg_builder.set_output('output.mp4')
+	) == [ '-i', 'input.mp4', 'output.mp4' ]
+	assert chain(
+		ffmpeg_builder.set_video_encoder('libx264'),
+		ffmpeg_builder.set_video_fps(30),
+		ffmpeg_builder.set_audio_encoder('aac')
+	) == [ '-c:v', 'libx264', '-vf', 'fps=30', '-c:a', 'aac' ]
+
+
+def test_concat() -> None:
+	assert concat(
+		set_video_encoder('libvpx-vp9'),
+		set_video_fps(30)
+	) == [ '-c:v', 'libvpx-vp9', '-vf', 'fps=30' ]
+	assert concat(
+		set_video_encoder('libvpx-vp9'),
+		set_video_fps(30),
+		keep_video_alpha('libvpx-vp9')
+	) == [ '-c:v', 'libvpx-vp9', '-vf', 'fps=30,format=yuva420p' ]
+	assert concat(
+		select_frame_range(0, 100, 30),
+		keep_video_alpha('libvpx-vp9')
+	) == [ '-vf', 'trim=start_frame=0:end_frame=100,fps=30,format=yuva420p' ]
+
+
+def test_set_stream_mode() -> None:
+	assert set_stream_mode('udp') == [ '-f', 'mpegts' ]
+	assert set_stream_mode('v4l2') == [ '-f', 'v4l2' ]
+
+
+def test_seek_to() -> None:
+	assert seek_to(0.0) == [ '-ss', '0.0' ]
+	assert seek_to(1.5) == [ '-ss', '1.5' ]
+
+
+def test_set_output_format() -> None:
+	assert set_output_format('rawvideo') == [ '-f', 'rawvideo' ]
+
+
+def test_select_frame_range() -> None:
+	assert select_frame_range(0, None, 30) == [ '-vf', 'trim=start_frame=0,fps=30' ]
+	assert select_frame_range(None, 100, 30) == [ '-vf', 'trim=end_frame=100,fps=30' ]
+	assert select_frame_range(0, 100, 30) == [ '-vf', 'trim=start_frame=0:end_frame=100,fps=30' ]
+	assert select_frame_range(None, None, 30) == [ '-vf', 'fps=30' ]
+
+
+def test_restrict_color_transfer() -> None:
+	assert restrict_color_transfer('smpte2084') == [ '-vf', 'scale=out_primaries=bt709:out_transfer=bt709:intent=perceptual' ]
+	assert restrict_color_transfer('arib-std-b67') == [ '-vf', 'scale=out_primaries=bt709:out_transfer=bt709:intent=perceptual' ]
+	assert restrict_color_transfer('invalid') == []
+
+
+def test_convert_color_space() -> None:
+	assert convert_color_space('bt601') == [ '-vf', 'scale=out_color_matrix=bt601:out_range=tv,setparams=colorspace=bt601:color_primaries=bt601:color_trc=bt601' ]
+	assert convert_color_space('bt709') == [ '-vf', 'scale=out_color_matrix=bt709:out_range=tv,setparams=colorspace=bt709:color_primaries=bt709:color_trc=bt709' ]
+	assert convert_color_space('bt2020') == [ '-vf', 'scale=out_color_matrix=bt2020:out_range=tv,setparams=colorspace=bt2020:color_primaries=bt2020:color_trc=bt2020' ]
+
+
+def test_set_audio_sample_size() -> None:
+	assert set_audio_sample_size(16) == [ '-f', 's16le' ]
+	assert set_audio_sample_size(32) == [ '-f', 's32le' ]
+
+
+def test_set_audio_quality() -> None:
+	assert set_audio_quality('aac', 0) == [ '-q:a', '0.1' ]
+	assert set_audio_quality('aac', 50) == [ '-q:a', '1.0' ]
+	assert set_audio_quality('aac', 100) == [ '-q:a', '2.0' ]
+	assert set_audio_quality('libmp3lame', 0) == [ '-q:a', '9' ]
+	assert set_audio_quality('libmp3lame', 50) == [ '-q:a', '4' ]
+	assert set_audio_quality('libmp3lame', 100) == [ '-q:a', '0' ]
+	assert set_audio_quality('libopus', 0) == [ '-b:a', '64k' ]
+	assert set_audio_quality('libopus', 50) == [ '-b:a', '160k' ]
+	assert set_audio_quality('libopus', 100) == [ '-b:a', '256k' ]
+	assert set_audio_quality('libvorbis', 0) == [ '-q:a', '-1.0' ]
+	assert set_audio_quality('libvorbis', 50) == [ '-q:a', '4.5' ]
+	assert set_audio_quality('libvorbis', 100) == [ '-q:a', '10.0' ]
+	assert set_audio_quality('flac', 0) == []
+	assert set_audio_quality('flac', 50) == []
+	assert set_audio_quality('flac', 100) == []
+
+
+def test_set_thread_count() -> None:
+	assert set_thread_count(8) == [ '-threads', '8' ]
+	assert set_thread_count(16) == [ '-threads', '16' ]
+
+
+def test_set_faststart() -> None:
+	assert set_faststart('m4v') == [ '-movflags', '+faststart' ]
+	assert set_faststart('mov') == [ '-movflags', '+faststart' ]
+	assert set_faststart('mp4') == [ '-movflags', '+faststart' ]
+	assert set_faststart('mkv') == []
+	assert set_faststart('webm') == []
+
+
+def test_set_video_tag() -> None:
+	assert set_video_tag('libx265', 'm4v') == [ '-tag:v', 'hvc1' ]
+	assert set_video_tag('hevc_nvenc', 'mov') == [ '-tag:v', 'hvc1' ]
+	assert set_video_tag('hevc_videotoolbox', 'mp4') == [ '-tag:v', 'hvc1' ]
+	assert set_video_tag('libx265', 'mkv') == []
+	assert set_video_tag('libx265', 'webm') == []
+	assert set_video_tag('libx264', 'mp4') == []
+	assert set_video_tag('h264_nvenc', 'mp4') == []
+
+
+def test_set_video_quality() -> None:
+	assert set_video_quality('libx264', 0) == [ '-crf', '51' ]
+	assert set_video_quality('libx264', 50) == [ '-crf', '26' ]
+	assert set_video_quality('libx264', 100) == [ '-crf', '0' ]
+	assert set_video_quality('libx264rgb', 0) == [ '-crf', '51' ]
+	assert set_video_quality('libx264rgb', 50) == [ '-crf', '26' ]
+	assert set_video_quality('libx264rgb', 100) == [ '-crf', '0' ]
+	assert set_video_quality('libx265', 0) == [ '-crf', '51' ]
+	assert set_video_quality('libx265', 50) == [ '-crf', '26' ]
+	assert set_video_quality('libx265', 100) == [ '-crf', '0' ]
+	assert set_video_quality('libvpx-vp9', 0) == [ '-crf', '63' ]
+	assert set_video_quality('libvpx-vp9', 50) == [ '-crf', '32' ]
+	assert set_video_quality('libvpx-vp9', 100) == [ '-crf', '0' ]
+	assert set_video_quality('h264_nvenc', 0) == [ '-cq' , '51' ]
+	assert set_video_quality('h264_nvenc', 50) == [ '-cq' , '26' ]
+	assert set_video_quality('h264_nvenc', 100) == [ '-cq' , '0' ]
+	assert set_video_quality('hevc_nvenc', 0) == [ '-cq' , '51' ]
+	assert set_video_quality('hevc_nvenc', 50) == [ '-cq' , '26' ]
+	assert set_video_quality('hevc_nvenc', 100) == [ '-cq' , '0' ]
+	assert set_video_quality('h264_amf', 0) == [ '-qp_i', '51', '-qp_p', '51', '-qp_b', '51' ]
+	assert set_video_quality('h264_amf', 50) == [ '-qp_i', '26', '-qp_p', '26', '-qp_b', '26' ]
+	assert set_video_quality('h264_amf', 100) == [ '-qp_i', '0', '-qp_p', '0', '-qp_b', '0' ]
+	assert set_video_quality('hevc_amf', 0) == [ '-qp_i', '51', '-qp_p', '51', '-qp_b', '51' ]
+	assert set_video_quality('hevc_amf', 50) == [ '-qp_i', '26', '-qp_p', '26', '-qp_b', '26' ]
+	assert set_video_quality('hevc_amf', 100) == [ '-qp_i', '0', '-qp_p', '0', '-qp_b', '0' ]
+	assert set_video_quality('h264_qsv', 0) == [ '-qp', '51' ]
+	assert set_video_quality('h264_qsv', 50) == [ '-qp', '26' ]
+	assert set_video_quality('h264_qsv', 100) == [ '-qp', '0' ]
+	assert set_video_quality('hevc_qsv', 0) == [ '-qp', '51' ]
+	assert set_video_quality('hevc_qsv', 50) == [ '-qp', '26' ]
+	assert set_video_quality('hevc_qsv', 100) == [ '-qp', '0' ]
+	assert set_video_quality('h264_videotoolbox', 0) == [ '-b:v', '1024k' ]
+	assert set_video_quality('h264_videotoolbox', 50) == [ '-b:v', '25768k' ]
+	assert set_video_quality('h264_videotoolbox', 100) == [ '-b:v', '50512k' ]
+	assert set_video_quality('hevc_videotoolbox', 0) == [ '-b:v', '1024k' ]
+	assert set_video_quality('hevc_videotoolbox', 50) == [ '-b:v', '25768k' ]
+	assert set_video_quality('hevc_videotoolbox', 100) == [ '-b:v', '50512k' ]

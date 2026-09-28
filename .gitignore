@@ -1,0 +1,36 @@
+# 依赖与虚拟环境
+venv/
+iopaint_venv/
+__pycache__/
+*.pyc
+
+# 模型权重
+# 体积达数 GB, 且其中部分模型(如 inswapper)为 Non-Commercial 许可, 不适合随仓库分发。
+# 首次运行时程序会按需下载。
+source/.assets/
+
+# IOPaint 的模型目录(去遮挡功能使用)
+iopaint_models/
+
+# 运行时产物
+temp/
+output/
+source/.jobs/
+source/.webp_converted/
+source/.occlusion_removed/
+source/.temp/
+*.log
+
+# 个人素材, 不上传
+test_photo/
+*.7z
+*.zip
+
+# 教程配图, 已改为纯文字教程, 不再被引用
+tutorial_assets/
+
+# 上游仓库自带的元数据, 不适合随本项目重新发布:
+#   FUNDING.yml 会把赞助引导到上游作者的账户
+#   preview.png 是上游的界面截图
+#   workflows/ci.yml 跑的是上游 CI, 在本仓库里没有意义
+source/.github/

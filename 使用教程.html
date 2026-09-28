@@ -1,0 +1,600 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FaceCopyer 换脸使用教程（离线版）</title>
+<style>
+  :root {
+    --red: #e53935;
+    --red-dark: #b71c1c;
+    --ink: #1f2328;
+    --muted: #5b6470;
+    --line: #e5e7eb;
+    --bg: #f7f8fa;
+    --card: #ffffff;
+    --code-bg: #f0f2f5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, "Segoe UI", "Microsoft YaHei", "PingFang SC", sans-serif;
+    color: var(--ink);
+    background: var(--bg);
+    line-height: 1.75;
+  }
+  .wrap { max-width: 980px; margin: 0 auto; padding: 0 24px 80px; }
+  header {
+    background: linear-gradient(135deg, var(--red-dark), var(--red));
+    color: #fff;
+    padding: 48px 24px 40px;
+  }
+  header .inner { max-width: 980px; margin: 0 auto; }
+  header h1 { margin: 0 0 8px; font-size: 30px; letter-spacing: .5px; }
+  header .sub { opacity: .92; font-size: 15px; }
+  header .tag {
+    display: inline-block; margin: 16px 8px 0 0; padding: 4px 12px;
+    background: rgba(255,255,255,.18); border-radius: 20px; font-size: 13px;
+  }
+  nav {
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+    padding: 16px 22px; margin: 20px 0;
+  }
+  nav b { display: block; margin-bottom: 6px; color: var(--red-dark); }
+  nav a { display: inline-block; margin: 2px 8px 2px 0; text-decoration: none; }
+  h2 {
+    font-size: 22px; margin: 52px 0 16px; padding-left: 12px;
+    border-left: 4px solid var(--red); line-height: 1.4;
+  }
+  h3 { font-size: 17px; margin: 28px 0 10px; }
+  h4 { font-size: 15px; margin: 20px 0 8px; color: var(--red-dark); }
+  p { margin: 10px 0; color: var(--ink); }
+  .muted { color: var(--muted); font-size: 14px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 20px 22px; margin: 16px 0;
+    box-shadow: 0 1px 3px rgba(0,0,0,.04);
+  }
+  code {
+    background: var(--code-bg); padding: 2px 6px; border-radius: 5px;
+    font-family: "Consolas", "Menlo", monospace; font-size: 13px; color: #c62828;
+  }
+  .path {
+    font-family: "Consolas", "Menlo", monospace; font-size: 13px;
+    background: #263238; color: #e8f5e9; padding: 2px 8px; border-radius: 5px;
+  }
+  ol.steps { counter-reset: step; list-style: none; padding: 0; }
+  ol.steps > li {
+    position: relative; padding: 18px 18px 18px 64px; margin: 14px 0;
+    background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  }
+  ol.steps > li::before {
+    counter-increment: step; content: counter(step);
+    position: absolute; left: 18px; top: 18px;
+    width: 30px; height: 30px; border-radius: 50%;
+    background: var(--red); color: #fff;
+    display: flex; align-items: center; justify-content: center;
+    font-weight: 700; font-size: 15px;
+  }
+  .grid { display: flex; gap: 12px; flex-wrap: wrap; margin: 12px 0; }
+  .grid .cell {
+    flex: 1 1 240px; background: var(--card); border: 1px solid var(--line);
+    border-radius: 10px; padding: 14px 16px;
+  }
+  .grid .cell b { display: block; color: var(--red-dark); margin-bottom: 4px; }
+  table { width: 100%; border-collapse: collapse; margin: 14px 0; background: #fff; }
+  th, td {
+    border: 1px solid var(--line); padding: 10px 12px; text-align: left; font-size: 14px;
+  }
+  th { background: #fcefee; color: var(--red-dark); font-weight: 600; }
+  .mod {
+    background: var(--card); border: 1px solid var(--line); border-left: 4px solid var(--red);
+    border-radius: 10px; padding: 18px 20px; margin: 16px 0;
+  }
+  .mod > b.t { display: block; font-size: 16px; margin-bottom: 6px; }
+  .mod .loc { color: var(--red-dark); font-size: 13px; font-weight: 600; }
+  .warn {
+    background: #fff8e1; border-left: 4px solid #f9a825; border-radius: 8px;
+    padding: 14px 16px; margin: 16px 0; font-size: 14px;
+  }
+  .tip {
+    background: #e8f5e9; border-left: 4px solid #43a047; border-radius: 8px;
+    padding: 14px 16px; margin: 16px 0; font-size: 14px;
+  }
+  .note {
+    background: #e3f2fd; border-left: 4px solid #1e88e5; border-radius: 8px;
+    padding: 14px 16px; margin: 16px 0; font-size: 14px;
+  }
+  ul { padding-left: 22px; }
+  ol { padding-left: 24px; }
+  li { margin: 6px 0; }
+  a { color: var(--red); }
+  .cols { display: flex; gap: 12px; flex-wrap: wrap; }
+  .cols > div { flex: 1 1 300px; }
+  footer { margin-top: 60px; padding-top: 20px; border-top: 1px solid var(--line); color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+<header>
+  <div class="inner">
+    <h1>FaceCopyer 换脸使用教程</h1>
+    <div class="sub">本地离线人像换脸 · GPU 加速 · 中文界面 · 支持图片与视频批量处理</div>
+    <span class="tag">FaceCopyer 1.0.0</span>
+    <span class="tag">界面已汉化</span>
+    <span class="tag">批量支持视频</span>
+    <span class="tag">含遮挡处理</span>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <nav>
+    <b>目录</b>
+    <a href="#cap1">一、能做什么</a>
+    <a href="#cap2">二、启动与关闭</a>
+    <a href="#cap3">三、界面导览</a>
+    <a href="#cap4">四、语言切换</a>
+    <a href="#cap5">五、模块详解</a>
+    <a href="#cap6">六、单张换脸流程</a>
+    <a href="#cap7">七、让脸更清晰</a>
+    <a href="#cap8">八、批量处理</a>
+    <a href="#cap9">九、中断后怎么续跑</a>
+    <a href="#cap10">十、目标有遮挡怎么办</a>
+    <a href="#cap11">十一、动态 WebP 与视频</a>
+    <a href="#cap12">十二、磁盘与缓存</a>
+    <a href="#cap13">十三、常见问题</a>
+    <a href="#cap14">十四、离线说明</a>
+  </nav>
+
+  <h2 id="cap1">一、这个项目能做什么</h2>
+  <div class="card">
+    <p>本项目 <strong>FaceCopyer 1.0.0</strong> 是一款本地换脸工具，运行在你自己的电脑上，<strong>无需联网、不上传任何图片</strong>，所有处理都在本机完成。它的底座是开源项目 FaceFusion 3.9.0。</p>
+    <div class="grid">
+      <div class="cell"><b>换脸</b>把一张图（源脸 A）的五官，精确替换到另一张图或视频（目标 B）的脸上</div>
+      <div class="cell"><b>GPU 加速</b>使用 NVIDIA RTX 4060 + CUDA 12 加速处理</div>
+      <div class="cell"><b>批量处理</b>整个文件夹一键处理，目标既可以是图片也可以是视频</div>
+      <div class="cell"><b>遮挡处理</b>目标脸上有贴纸、手、刘海时，可去除遮挡或只换可见部分</div>
+      <div class="cell"><b>中文界面</b>全界面汉化，可一键切换中/英文</div>
+      <div class="cell"><b>离线可用</b>常用模型已下载到本地，日常使用无需联网</div>
+    </div>
+    <p class="muted">说明：本工具只替换「面部」，发型、头饰、耳朵、身体、背景都保持目标图 B 不变（这是所有 AI 换脸技术的通用边界）。</p>
+  </div>
+
+  <h2 id="cap2">二、如何启动与关闭</h2>
+  <div class="card">
+    <ol class="steps">
+      <li>
+        <b>双击 <code>D:\facefusion\run.bat</code></b>
+        <p class="muted">启动脚本会自动：① 加载 CUDA 库路径 ② 清理占用 7860 端口的旧进程 ③ 拉起 IOPaint 去遮挡服务（8081 端口）④ 启动界面并自动打开浏览器。</p>
+      </li>
+      <li>
+        <b>等待浏览器自动打开 <code>http://127.0.0.1:7860</code></b>
+        <p class="muted">首次加载约需 30–60 秒（要加载推理模型），看到红底标题栏「FaceCopyer 1.0.0」即成功。</p>
+      </li>
+      <li>
+        <b>关闭程序</b>
+        <p class="muted">在那个黑色运行窗口里按 <code>Ctrl + C</code> 即可停止服务。建议用这种方式关闭，不要直接点窗口右上角的叉号。</p>
+      </li>
+    </ol>
+    <div class="warn"><strong>注意：</strong>本工具固定使用 <strong>7860</strong> 端口。如果你同时运行了别的占用 7860 端口的程序，run.bat 会自动结束它——请提前保存好其它项目的工作。</div>
+    <div class="note"><strong>为什么建议用 Ctrl + C 关闭：</strong>正常停止时程序会把上传与预览产生的临时缓存整个清空，下次启动更干净；直接关窗口属于强制中断，缓存清不掉，只能等它自己过期（见第十二章）。两种方式都不影响已经处理好的成片。</div>
+  </div>
+
+  <h2 id="cap3">三、界面导览</h2>
+  <p>界面共四栏，从左到右依次是设置区、文件区、按钮条、参数区。</p>
+  <div class="grid">
+    <div class="cell"><b>左栏 · 设置区</b>「界面语言」「处理器」勾选、各处理器参数、「工作流」「推理后端」「执行线程数」「下载源」「显存策略」「临时帧」「输出选项」</div>
+    <div class="cell"><b>中栏 · 文件区</b>「源」「手动描边」「目标」「批量处理」「图片输出目录」「视频输出目录」「输出」「清理垃圾文件」「日志等级」「终端」</div>
+    <div class="cell"><b>窄按钮条</b>夹在中栏与右栏之间，只有「预览」「开始」「停止」和任务管理按钮，位置很窄容易看漏</div>
+    <div class="cell"><b>右栏 · 参数区</b>「预览」画面、「修剪帧」「人脸选择」「人脸跟踪」「掩膜」「人脸检测」「关键点」</div>
+  </div>
+  <div class="tip"><strong>找不到「开始」按钮时：</strong>它在中栏和右栏之间那条很窄的竖列里，排在「预览」按钮下方。按钮文字是「英文名 · 中文名」的形式，例如 <code>face_swapper · 换脸</code>，方便和文档、命令行参数对照。</div>
+  <div class="tip"><strong>顶部横幅与「关于」面板：</strong>左上角显示程序名与版本 <code>FaceCopyer 1.0.0</code>。它下方的「关于」里有上下两个按钮，文字分别是程序名和「在 GitHub 上查看源码」，点任意一个都会在浏览器里打开本项目的仓库地址 <code>https://github.com/Sistine00/FaceCopyer</code>。</div>
+
+  <h4>两个会让界面更易读的细节</h4>
+  <div class="card">
+    <ul>
+      <li><strong>控件下方都有说明。</strong>每个可调项下面都有一行灰色小字，写明这个参数是做什么的、什么时候需要动它。不熟悉时先读这行字，不必翻文档。</li>
+      <li><strong>模型下拉列表会按是否已下载标色。</strong>列表里<span style="color:#e53935;font-weight:600">红色加粗</span>的是本机已下载、可直接使用的模型；灰色的是尚未下载的，选中它们会触发一次下载。换脸、人脸增强、帧增强、人脸检测等模型列表都适用这个规则。</li>
+    </ul>
+  </div>
+
+  <h2 id="cap4">四、语言切换（中文 / English）</h2>
+  <div class="card">
+    <p>左栏最上方的「界面语言」下拉框默认是<strong>中文</strong>，可切换为 English。</p>
+    <ol>
+      <li>在「界面语言」下拉框里选择目标语言。</li>
+      <li>选择后服务会自动保存设置并<strong>重启生效</strong>（约 30–40 秒），刷新页面即可看到新语言。</li>
+      <li>中文翻译里未覆盖的个别词会自动回退为英文，不影响使用。</li>
+    </ol>
+    <div class="tip">语言设置会持久化保存，下次启动保持上次选择的语言。</div>
+  </div>
+
+  <h2 id="cap5">五、功能模块详解</h2>
+  <p>下面按界面位置，把每个模块的作用讲清楚。文中名称与界面文字一致。</p>
+
+  <h4>◇ 左栏 · 设置区</h4>
+
+  <div class="mod">
+    <b class="t">处理器</b>
+    <span class="loc">位置：左栏「关于」下方，紧接「界面语言」</span>
+    <p>用勾选框选择本次要启用的处理器，<strong>换脸必须勾选「换脸」</strong>（即 <code>face_swapper</code>，默认已勾选）。其余按需勾选：</p>
+    <table>
+      <tr><th>处理器</th><th>作用</th><th>何时使用</th></tr>
+      <tr><td><code>face_swapper</code> · 换脸</td><td>核心换脸</td><td>必选</td></tr>
+      <tr><td><code>face_enhancer</code> · 人脸增强</td><td>提升脸部清晰度</td><td>想让脸更清晰时（见第七章）</td></tr>
+      <tr><td><code>expression_restorer</code> · 表情恢复</td><td>保留目标原有表情</td><td>换脸后表情被带歪时</td></tr>
+      <tr><td><code>frame_enhancer</code> · 帧增强</td><td>整帧高清增强</td><td>整体清晰度低时。这是最耗时的处理器，批量视频慎开</td></tr>
+      <tr><td><code>background_remover</code> · 背景移除</td><td>抠掉背景</td><td>想换背景时</td></tr>
+      <tr><td><code>deep_swapper</code> · 深度换脸</td><td>另一套换脸模型</td><td>追求不同风格的换脸效果</td></tr>
+      <tr><td><code>age_modifier</code> · 年龄修改</td><td>调整年龄</td><td>让脸变老或变年轻</td></tr>
+      <tr><td><code>face_editor</code> · 人脸编辑</td><td>调整五官方向</td><td>微调眼神、嘴巴、头角度</td></tr>
+      <tr><td><code>frame_colorizer</code> · 帧上色</td><td>黑白画面着色</td><td>处理老黑白素材</td></tr>
+      <tr><td><code>lip_syncer</code> · 唇形同步</td><td>让口型对上声音</td><td>需要在「源」里同时放入音频文件，否则会直接报错停止</td></tr>
+    </table>
+    <div class="note"><strong>建议：</strong>日常换脸只勾「换脸」即可。勾得越多越慢，也越容易带出「AI 感」。批量视频时这一点尤其明显——同时开换脸 + 表情恢复 + 人脸增强 + 帧增强，一个 5 秒 1024p 的动图就要 6 到 10 分钟。</div>
+  </div>
+
+  <div class="mod">
+    <b class="t">各处理器的专属参数</b>
+    <span class="loc">位置：左栏「处理器」下方</span>
+    <p>勾选了哪个处理器，它对应的参数块就会显示出来。最常用的是换脸的几项：</p>
+    <table>
+      <tr><th>参数</th><th>说明</th><th>建议</th></tr>
+      <tr><td>换脸模型</td><td>具体的换脸算法模型</td><td>列表里红色的是已下载的，可直接用</td></tr>
+      <tr><td>换脸像素提升</td><td>换脸输出分辨率，越高越清晰</td><td>图片用 512×512 或 1024×1024；视频用 128×128 到 256×256 更快</td></tr>
+      <tr><td>换脸权重</td><td>换脸强度</td><td>0.5 是默认值，想更像源脸就往上调</td></tr>
+      <tr><td>人脸增强模型 / 混合</td><td>增强模型与融合比例</td><td>见第七章</td></tr>
+    </table>
+  </div>
+
+  <div class="mod">
+    <b class="t">推理后端 / 线程 / 下载源 / 显存策略 / 临时帧 / 输出选项</b>
+    <span class="loc">位置：左栏下半部分</span>
+    <p>这些一般不用动，用默认即可。简单说明：</p>
+    <ul>
+      <li><strong>推理后端：</strong>确认 <code>cuda</code> 已勾选（走 GPU）。选 <code>cpu</code> 会慢到无法实用。</li>
+      <li><strong>执行线程数：</strong>保持默认。</li>
+      <li><strong>下载源：</strong>需要下载新模型时的来源，默认已按国内网络排好顺序，一般不用改。</li>
+      <li><strong>显存策略 / 临时帧：</strong>显存不足或处理长视频卡顿时再调，一般保持默认。</li>
+      <li><strong>输出选项：</strong>输出视频的编码、画质、帧率等，保持默认即可。</li>
+    </ul>
+  </div>
+
+  <h4>◇ 中栏 · 文件区</h4>
+
+  <div class="mod">
+    <b class="t">源</b>
+    <span class="loc">位置：中栏最上方</span>
+    <p>这里是<strong>提供脸的那一方</strong>。可以放多张图片，程序会把它们合成一个平均脸来用。旁边有「清除」按钮可彻底退出当前素材。</p>
+    <ul>
+      <li>源脸建议<strong>正脸、光线均匀、无遮挡</strong>，分辨率越高换出来的脸越清晰。</li>
+      <li>如果同时勾了「唇形同步」，还需要在这里额外放一个音频文件。</li>
+    </ul>
+  </div>
+
+  <div class="mod">
+    <b class="t">手动描边</b>
+    <span class="loc">位置：中栏「源」与「目标」之间</span>
+    <p>目标有遮挡时用画笔涂抹遮挡物的位置，画出修复范围。详细用法见第十章。</p>
+  </div>
+
+  <div class="mod">
+    <b class="t">目标</b>
+    <span class="loc">位置：中栏「手动描边」下方</span>
+    <p>这里是<strong>要被换脸的那一方</strong>。可以传图片，也可以传视频，还支持动态 <code>.webp</code>（会自动转成 mp4）。</p>
+    <p class="muted">下方会直接显示选中的目标画面，方便确认是否选对文件。</p>
+  </div>
+
+  <div class="mod">
+    <b class="t">批量处理</b>
+    <span class="loc">位置：中栏「目标」下方的折叠面板「② 参考图无遮挡 · 批量换脸（含视频）」</span>
+    <p>整个文件夹一键处理，目标支持图片与视频。详细用法见第八、九章。</p>
+  </div>
+
+  <div class="mod">
+    <b class="t">图片输出目录 / 视频输出目录</b>
+    <span class="loc">位置：中栏「批量处理」下方</span>
+    <p>成片按类型分开存放：图片进图片目录，视频和动态 WebP 进视频目录。两个路径都可以直接改写，或点「选择目录」指定别处；「打开目录」会用资源管理器打开当前文件夹。路径会保存下来，重启后仍是上次的位置。</p>
+    <div class="tip">默认分别是 <code>D:\facefusion\output\picture</code> 和 <code>D:\facefusion\output\video</code>。</div>
+  </div>
+
+  <div class="mod">
+    <b class="t">输出</b>
+    <span class="loc">位置：中栏输出目录下方</span>
+    <p>显示本次处理的结果。视频可以直接在这里播放。</p>
+  </div>
+
+  <div class="mod">
+    <b class="t">清理垃圾文件</b>
+    <span class="loc">位置：中栏「输出」下方</span>
+    <p>手动清理程序运行过程中产生的缓存与残留文件，可勾选五类内容后点「立即清理」：</p>
+    <table>
+      <tr><th>清理项</th><th>说明</th></tr>
+      <tr><td>失败的任务记录</td><td>任务列表里失败记录的文件，删除后不影响成片</td></tr>
+      <tr><td>临时帧残留</td><td>处理视频时意外中断留下的中间文件</td></tr>
+      <tr><td>动态 WebP 转码缓存</td><td>动图转出的 mp4，删掉后下次会自动重转</td></tr>
+      <tr><td>去遮挡结果缓存</td><td>去遮挡处理的结果图。改了描边掩码想让它重新生效时，清这里</td></tr>
+      <tr><td>上传副本（仅清 1 小时前的）</td><td>浏览器上传时留下的副本。默认不勾，它可能正是当前已选素材的来源</td></tr>
+    </table>
+    <p class="muted">清理前会先等当前任务结束，并且跳过本会话正在使用的文件；结果会显示释放了多少空间。详细说明见第十二章。</p>
+  </div>
+
+  <div class="mod">
+    <b class="t">处理未完成（失败提示）</b>
+    <span class="loc">位置：中栏「清理垃圾文件」下方，只在失败时出现</span>
+    <p>以前处理失败时界面毫无反应，原因只写在「终端」里，容易以为程序卡住。现在失败会在这里列出原因，例如「选择一张图像作为源！」「选择一个音频作为源！」，并提示去「终端」看完整日志。成功、点「清除」、点「停止」时提示会自动收起。</p>
+  </div>
+
+  <div class="mod">
+    <b class="t">日志等级 / 终端</b>
+    <span class="loc">位置：中栏最下方</span>
+    <p>实时显示处理进度和日志，视频处理时还能看到逐帧进度。遇到问题把这一块的文字发给排查人员。</p>
+  </div>
+
+  <h4>◇ 右栏 · 参数区</h4>
+
+  <div class="mod">
+    <b class="t">预览</b>
+    <span class="loc">位置：右栏顶部</span>
+    <p>选好源和目标后点「预览」，可以先看换脸效果再决定要不要正式跑一遍。旁边可调预览模式与分辨率。</p>
+  </div>
+
+  <div class="mod">
+    <b class="t">修剪帧、人脸选择、人脸跟踪、掩膜、人脸检测、关键点</b>
+    <span class="loc">位置：右栏下半部分</span>
+    <ul>
+      <li><strong>修剪帧：</strong>只处理视频的一段范围，用于快速试效果。</li>
+      <li><strong>人脸选择：</strong>画面里有多个人时，指定要换哪一张（按位置顺序／性别／人种／年龄，或用参考脸相似度）。</li>
+      <li><strong>人脸跟踪：</strong>视频里持续跟踪同一张脸，避免换到别人脸上。</li>
+      <li><strong>掩膜：</strong>控制换脸覆盖哪些区域、保留哪些区域（如眼镜、头发不覆盖）。</li>
+      <li><strong>人脸检测 / 关键点：</strong>检测与定位模型，一般保持默认。</li>
+    </ul>
+    <p class="muted">多数情况保持默认即可，只有多人画面或特殊素材才需要微调。目标里的人脸如果太小或遮挡严重导致检测不到，换脸会不生效，排查方法见第十三章。</p>
+  </div>
+
+  <h2 id="cap6">六、单张换脸流程</h2>
+  <ol class="steps">
+    <li>
+      <b>确认处理器</b> — 左栏「处理器」里确认「换脸」已勾选（默认已勾）。只做图片换脸时，建议只留这一个。
+    </li>
+    <li>
+      <b>调清晰度（可选）</b> — 左栏把「换脸像素提升」调高一些，图片可用 512×512 或 1024×1024。
+    </li>
+    <li>
+      <b>放源脸</b> — 中栏「源」上传提供脸的那张图。
+    </li>
+    <li>
+      <b>放目标</b> — 中栏「目标」上传要被换的那张图或那段视频。
+    </li>
+    <li>
+      <b>预览并开始</b> — 右栏点「预览」看效果，确认后点中栏右侧窄条里的「开始」，等待处理完成。
+    </li>
+    <li>
+      <b>取回结果</b> — 中栏「输出」会显示成片，文件已按类型存进图片或视频输出目录。
+    </li>
+  </ol>
+
+  <h2 id="cap7">七、怎么让输出的人脸更清晰</h2>
+  <p>换出来的脸如果发虚、不够锐，按下面两步处理：</p>
+  <ol class="steps">
+    <li>
+      <b>开启人脸增强</b> — 左栏「处理器」里勾选 <code>face_enhancer</code>。
+    </li>
+    <li>
+      <b>设置增强参数</b> — 勾选后出现的参数里：
+      <table>
+        <tr><th>参数</th><th>推荐值</th><th>说明</th></tr>
+        <tr><td>模型</td><td>gfpgan_1.4</td><td>最清晰锐利；想更自然可选 codeformer</td></tr>
+        <tr><td>混合度（blend）</td><td>70–85</td><td>越高越清晰、AI 感越强；太低几乎没有效果</td></tr>
+        <tr><td>权重（weight）</td><td>0.5</td><td>一般不用动</td></tr>
+      </table>
+    </li>
+  </ol>
+  <div class="warn"><strong>注意：</strong>增强只作用于脸部区域，头发与背景不参与。如果背景也糊，那是目标素材本身分辨率太低。增强调太高会显得皮肤过滑、表情不自然，建议从 70 起步，够清晰就行。</div>
+
+  <h2 id="cap8">八、批量处理</h2>
+  <p>批量面板在中栏「目标」下方的折叠条里，标题是「② 参考图无遮挡 · 批量换脸（含视频）」，点一下展开。它适合把一个文件夹里的素材一次性处理完。</p>
+
+  <h4>1. 三种投素材方式</h4>
+  <table>
+    <tr><th>方式</th><th>怎么做</th><th>适合</th></tr>
+    <tr><td>直接上传</td><td>在「批量源图（人脸）」「批量目标（图片或视频）」里多选或拖入文件</td><td>只处理几个文件</td></tr>
+    <tr><td>填路径后载入</td><td>在路径框里填文件夹，点「载入源图文件夹」/「载入目标文件夹」</td><td>已知路径</td></tr>
+    <tr><td>选择文件夹</td><td>点「选择源文件夹」/「选择目标文件夹」，弹窗会停在各自上次的目录</td><td>日常最省事</td></tr>
+  </table>
+  <p class="muted">源与目标是两套独立的入口，各自记住自己的文件夹。载入后下方的「源图预览」「目标预览」会列出这一轮要处理的文件。</p>
+
+  <h4>2. 用「处理对象」限定这一轮跑哪一类</h4>
+  <p>目标列表里可以同时有图片和视频，用「处理对象」三选一来限定：</p>
+  <table>
+    <tr><th>选项</th><th>会处理</th></tr>
+    <tr><td>图片 + 视频</td><td>全部目标（默认）</td></tr>
+    <tr><td>仅图片</td><td>只处理静态图片</td></tr>
+    <tr><td>仅视频</td><td>只处理视频，动态 WebP 也算视频</td></tr>
+  </table>
+  <div class="tip">切换类型时「目标预览」会同步只显示被选中的文件，并在「批量进度」里给出数量，例如「已按「仅视频」筛选：2 个（共载入 3 个目标）」。开跑前可以先确认一遍。</div>
+
+  <h4>3. 开始与进度</h4>
+  <p>点「开始批量」后，会先出现「实时进度」，每秒刷新一次：</p>
+  <div class="card">
+    <pre style="margin:0;font-family:Consolas,Menlo,monospace;font-size:13px;line-height:1.9;color:#263238">第 6/76 个 · 2026-09-27_22-19-20_590.webp
+本目标 41%（81/193 帧）· 已用时 0:06:12
+已完成 2 个 · 单个平均 0:05:30 · 预计剩余 6:25:00</pre>
+  </div>
+  <p>第二行的帧数取自处理进度条，第三行是按已完成目标的平均耗时推算的剩余时间，会随速度自动修正。下方「批量进度」则逐目标累积结果，每完成一个加一行：</p>
+  <div class="card">
+    <pre style="margin:0;font-family:Consolas,Menlo,monospace;font-size:13px;line-height:1.9;color:#263238">[6/76] 2026-09-27_22-19-20_590.webp · 换脸 193 帧 · 用时 0:06:12
+[7/76] 2026-09-27_22-19-40_115.webp · 未检测到可换的人脸（193 帧未处理） · 用时 0:05:41</pre>
+  </div>
+  <p>全部跑完后会在最上方插入汇总，并列出没换到脸的文件名：</p>
+  <div class="card">
+    <pre style="margin:0;font-family:Consolas,Menlo,monospace;font-size:13px;line-height:1.9;color:#263238">批量完成 | 输出文件夹：D:\facefusion\output\video
+共 76 个目标：70 个已换脸，3 个未检测到人脸，3 个已跳过
+未检测到人脸的目标：xxx.webp , yyy.webp , zzz.webp</pre>
+  </div>
+  <div class="tip"><strong>为什么每行都要报「换脸多少帧」：</strong>目标里检测不到人脸时，程序会把画面原样输出，日志里也只写「处理成功」，光看文件是看不出来的。这一行是唯一能判断该目标是否真的换过的依据。</div>
+
+  <h4>4. 成片命名与查看</h4>
+  <ul>
+    <li>命名规则是 <code>目标名_swapped_序号</code>，序号是目标在筛选后列表里的位置。</li>
+    <li>视频成片与图片成片分别进「视频输出目录」和「图片输出目录」。</li>
+    <li>「批量输出」里的视频可以直接播放，不用去文件夹里找。</li>
+  </ul>
+
+  <h4>5. 时间成本</h4>
+  <div class="warn"><strong>先算一下再开跑：</strong>处理速度取决于处理器数量、素材分辨率和帧数。以本机实测为例，一个 5 秒、1024p 的动图，开着换脸 + 表情恢复 + 人脸增强 + 帧增强四个处理器，单个就要 6 到 10 分钟；只留换脸则降到 1 分钟出头。76 个这样的目标按前一种配置要跑一整夜。如果只是试效果，先用右栏「修剪帧」裁一小段，或先只勾换脸。</div>
+
+  <h2 id="cap9">九、中断后怎么续跑</h2>
+  <div class="card">
+    <p>批量任务的目标清单只存在内存里，程序一退出（崩溃、被强制关闭、或误点停止）就丢了，重跑必须重新选一次源和目标文件夹。成片的命名是 <code>目标名_swapped_序号</code>，序号取自目标在筛选后列表里的位置，所以只要下面三项和上一轮一致，序号就能精确对上：</p>
+    <ul>
+      <li>源（同一批源图或同一个源文件夹）</li>
+      <li>目标文件夹路径</li>
+      <li>「处理对象」的选择</li>
+    </ul>
+    <p>满足这三条后，勾上「<strong>跳过已存在的成片</strong>」再点「开始批量」，已经做完的目标会整条跳过并在进度里标成「已存在成片，跳过」，只补算没做完的部分。</p>
+    <div class="warn"><strong>默认不勾是有意的。</strong>如果你改过模型或参数、想让所有目标全部重算，勾着它会把已完成的目标静默跳过，看起来像「没跑」。判断依据只是输出文件是否存在，不看内容新旧。</div>
+  </div>
+
+  <h2 id="cap10">十、目标有遮挡怎么办</h2>
+  <p>目标人脸经常带着贴纸、手、眼镜、刘海等遮挡物。换脸是整脸替换，默认会把遮挡物一并盖掉，但不同需求要用不同方法。</p>
+
+  <h4>先分清你要哪种结果</h4>
+  <table>
+    <tr><th>你的想法</th><th>该怎么做</th></tr>
+    <tr><td>去掉贴纸/遮挡，得到一张干净的脸</td><td>用「去除遮挡」</td></tr>
+    <tr><td>保留贴纸/刘海，只让源脸融入可见的部分</td><td>用「保留遮挡」</td></tr>
+  </table>
+
+  <h4>方法一：去掉遮挡，得到干净人脸</h4>
+  <div class="card">
+    <p>先用内置的 IOPaint 把遮挡区域补成自然的肤色轮廓，再用源脸整脸覆盖，贴纸自然消失。</p>
+    <ol>
+      <li>在批量面板的「目标图有遮挡处理」下拉里选「去除遮挡（整脸换脸）」（默认）。</li>
+      <li>源图用<strong>无遮挡的正面照</strong>（眼睛、眉毛清晰）——换完后这双眼睛就出现在原来贴纸的位置。</li>
+      <li>目标放带遮挡的图，点「开始批量」或单张流程点「开始」。</li>
+    </ol>
+    <div class="tip">去遮挡由随 <code>run.bat</code> 一起启动的 IOPaint 服务（8081 端口）完成。它未运行时程序会跳过这一步、直接整脸覆盖。</div>
+  </div>
+
+  <h4>方法二：保留遮挡，只换可见部分</h4>
+  <div class="card">
+    <p>用区域掩膜只替换未被遮挡的部分（通常是鼻尖以下），贴纸、刘海、被挡住的眉眼保持原样。</p>
+    <ol>
+      <li>在「目标图有遮挡处理」下拉里选「保留遮挡（仅换可见部分）」。</li>
+      <li>源脸选下半脸轮廓清晰的正面照，嘴型与下巴角度越接近目标越自然。</li>
+    </ol>
+    <div class="tip">等效的手动设置：右栏「掩膜」里把类型勾成 <code>area</code>、区域勾成 <code>lower-face</code>。若贴纸边界有明显缝隙，可改用更细的 <code>region</code> 掩膜并组合「皮肤／鼻子／嘴唇」。</div>
+  </div>
+
+  <h4>方法三：手动描边，自己画出要修的位置</h4>
+  <div class="card">
+    <p>自动检测不准时（例如彩色贴纸与肤色接近），可以在中栏「手动描边」画布上用红色画笔把遮挡物涂掉。沿边缘描一圈即可，框内会自动填充；直接涂满也行，这种情况下完全按笔迹走，橡皮擦擦掉的地方不会复活。</p>
+    <ul>
+      <li>画笔粗细点画布工具栏的 <strong>Brush Size</strong> 调整，画错了用 <strong>Erase</strong>，想全部重来点「清除标注」。</li>
+      <li>运行时程序会先按标注挖除遮挡并修复，再换脸；不标注则用自动检测。</li>
+    </ul>
+    <div class="note">描边结果会被缓存成去遮挡结果图。改了掩码想让它重新生效，需要到「清理垃圾文件」里勾「去遮挡结果缓存」清一次（见第十二章）；另外批量处理目前只使用自动掩码，手动描边只作用于单张流程。</div>
+  </div>
+
+  <h4>下拉选项对照</h4>
+  <table>
+    <tr><th>选项</th><th>作用</th></tr>
+    <tr><td>自动（使用当前掩膜设置）</td><td>完全按右栏手动设置的掩膜走</td></tr>
+    <tr><td>去除遮挡（整脸换脸）</td><td>覆盖贴纸，输出干净整脸</td></tr>
+    <tr><td>保留遮挡（仅换可见部分）</td><td>保留贴纸与刘海，只换可见区域</td></tr>
+  </table>
+  <p class="muted">这个选项同时作用于批量与单张处理。</p>
+
+  <h2 id="cap11">十一、动态 WebP 与视频</h2>
+  <div class="card">
+    <p>会动的 <code>.webp</code> 本质是动态图片，本项目已内置自动转换：</p>
+    <ul>
+      <li>在「目标」或「批量目标」里直接放 <code>.webp</code>，或把它所在的文件夹作为目标文件夹，都可以。</li>
+      <li>程序会先转成 <code>.mp4</code> 再换脸，不需要你手动预转。转换结果会缓存（存在 <code>source\.webp_converted</code>），同一份素材重复处理直接复用。</li>
+      <li>在批量面板里，动态 WebP 归入「视频」一类，选「仅视频」会把它一起选中。</li>
+    </ul>
+    <p>普通视频（<code>.mp4</code>、<code>.mov</code>、<code>.mkv</code>、<code>.avi</code>、<code>.webm</code>）与图片一样直接放进去即可。视频可以保留原声，输出的分辨率、帧率在左栏「输出选项」里调。</p>
+  </div>
+
+  <h2 id="cap12">十二、磁盘与缓存</h2>
+  <p>程序运行过程中会产生几类临时文件，都不影响成片，可以随时清理。</p>
+  <table>
+    <tr><th>内容</th><th>位置</th><th>说明</th></tr>
+    <tr><td>上传与预览副本</td><td><code>D:\facefusion\temp\gradio</code></td><td>浏览器上传的素材副本，以及成片在界面里显示时另存的一份拷贝</td></tr>
+    <tr><td>临时帧残留</td><td><code>D:\facefusion\temp\facefusion\目标名</code></td><td>处理视频时的中间文件，正常跑完会自动删除</td></tr>
+    <tr><td>动态 WebP 转码结果</td><td><code>source\.webp_converted</code></td><td>会动的 webp 转出的 mp4</td></tr>
+    <tr><td>去遮挡结果</td><td><code>source\.occlusion_removed</code></td><td>去遮挡后的图与配套关键点文件</td></tr>
+    <tr><td>任务记录</td><td><code>source\.jobs</code></td><td>每次处理的历史记录</td></tr>
+  </table>
+
+  <h4>自动过期</h4>
+  <div class="card">
+    <ul>
+      <li>上传与预览那部分缓存<strong>每 15 分钟检查一次，超过 2 小时的自动删除</strong>。</li>
+      <li>正常停止程序（黑色窗口里按 <code>Ctrl + C</code>）时，这部分缓存会被整个清空，所以重启后需要重新选一次素材。</li>
+      <li>输出目录里的成片是原文件，不在清理范围内，永远不会被自动删掉。</li>
+    </ul>
+  </div>
+
+  <h4>手动清理</h4>
+  <p>「清理垃圾文件」面板可以随时手动清，五个勾选项见第五章。清理前会等当前任务结束，并跳过本次会话正在使用的文件，清完会告诉你释放了多少空间。</p>
+
+  <div class="warn"><strong>批量处理很占缓存空间。</strong>每个成片都会在缓存里留一份完整拷贝（界面要用它播放），实测 7 个 100–300 MB 的成片就堆到 3.5 GB。76 个目标能堆出十几 GB，所以缓存目录已经被放到 D 盘（<code>D:\facefusion\temp</code>），不要把它改回 C 盘。长批量跑完后可以到「清理垃圾文件」里勾「动态 WebP 转码缓存」等项清一次。</div>
+
+  <h2 id="cap13">十三、常见问题排查</h2>
+  <div class="card">
+    <h3>1. 双击 run.bat 没反应或闪退</h3>
+    <p>确认 <code>D:\facefusion\venv\Scripts\python.exe</code> 存在；不存在说明虚拟环境损坏，需要重新部署。</p>
+
+    <h3>2. 浏览器没自动打开</h3>
+    <p>手动在地址栏输入 <code>http://127.0.0.1:7860</code> 访问即可。</p>
+
+    <h3>3. 点了「开始」没有任何反应</h3>
+    <p>先看中栏「清理垃圾文件」下方有没有出现「处理未完成」提示，那里会直接写出失败原因，例如「选择一张图像作为源！」（源是空的）、「选择一个音频作为源！」（勾了唇形同步但源里没有音频）。更完整的日志在同栏最下方的「终端」里。</p>
+
+    <h3>4. 跑完了，但脸好像没换</h3>
+    <p>多半是目标里没检测到人脸，程序把画面原样输出了。常见原因有三种：人脸在画面里太小（把 1132×1080 的照片整体缩到 384 宽，人脸只剩约 30 像素就检测不到）；遮挡严重（宽帽檐压住额头并遮暗眼睛）；画面里根本没有清晰正脸。判断方法：看批量进度里那一行的帧计数——写「未检测到可换的人脸」就属于这种情况。处理办法是换更清晰、人脸占比更大的素材，或先用右栏「预览」确认能框出人脸。</p>
+
+    <h3>5. 报「内容审查 / NSFW」相关错误</h3>
+    <p>run.bat 已默认设置 <code>FACEFUSION_DISABLE_NSFW=1</code> 关闭误判审查。如确实需要审查，可去掉该行。</p>
+
+    <h3>6. 换脸后脸部模糊</h3>
+    <p>勾选「人脸增强」并调高混合度（见第七章）；把「换脸像素提升」调高；源脸换成分辨率更高的正脸照片。</p>
+
+    <h3>7. 看起来卡住了，进度很久不动</h3>
+    <p>先看「实时进度」那一块：只要「本目标」的帧数在涨，就说明在正常处理，只是这个目标比较大。视频处理本来就是一个目标几分钟到十几分钟，界面在单个目标处理期间只有这一处会更新。如果帧数长时间不动，再到「终端」看有没有报错。</p>
+
+    <h3>8. 报显存或内存不足</h3>
+    <p>关掉其它占用显存/内存的程序（例如同时在跑生图），或把「换脸像素提升」调低、关掉「帧增强」重试。</p>
+
+    <h3>9. 速度很慢</h3>
+    <p>确认左栏「推理后端」里 <code>cuda</code> 已勾选（走 GPU，选 cpu 会慢到无法实用）；减少同时勾选的处理器；视频可先用「修剪帧」只跑一小段试效果。</p>
+
+    <h3>10. 批量结果找不到</h3>
+    <p>看「批量进度」最后一行的输出文件夹提示，或到中栏「视频输出目录」「图片输出目录」点「打开目录」。视频成片默认在 <code>D:\facefusion\output\video</code>，图片在 <code>output\picture</code>。</p>
+
+    <h3>11. 点「选择源/目标文件夹」没反应</h3>
+    <p>该按钮会弹出系统文件夹选择窗口，确认没有被浏览器弹窗拦截；窗口没出来时，改用「手动填路径 + 载入」的方式。</p>
+
+    <h3>12. 批量跑到一半程序退出了</h3>
+    <p>已经产出的成片都在输出目录里，不会丢。按第九章的方法勾上「跳过已存在的成片」重新跑，就不会重复处理已经做完的目标。</p>
+
+    <h3>13. 磁盘空间越来越小</h3>
+    <p>看第十二章。缓存有自动过期，也可以用「清理垃圾文件」手动清。批量处理产生的成片本身也会占空间，那是结果文件，需要自己按需保留。</p>
+  </div>
+
+  <h2 id="cap14">十四、关于「离线使用」</h2>
+  <div class="note">
+    <p><b>当前状态：</b>常用模型（换脸、人脸检测与关键点、人脸解析、人脸增强、帧增强等）都已下载到 <code>D:\facefusion\source\.assets\models\</code>，日常换脸可以完全离线进行。模型下拉列表里红色加粗的就是这些已下载的模型。</p>
+    <p><b>例外：</b>若选了列表里灰色的模型，首次使用时会联网下载一次，之后恢复离线可用。若删除了模型文件，也会重新下载。</p>
+  </div>
+
+  <footer>
+    本教程随项目存放于 <span class="path">D:\facefusion\使用教程.html</span>，双击即可离线查看。<br>
+    更新日期：2026-09-28 · 覆盖批量视频、实时进度、续跑、失败提示、缓存清理与磁盘策略等新增内容。
+  </footer>
+</div>
+</body>
+</html>
