@@ -29,13 +29,21 @@ UI_LAYOUT_METHODS =\
 # 以及组件显示成片时另存的一份拷贝。它们不会被程序主动清理, 所以交给 gradio 自己按策略过期,
 # 参数含义是 [检查间隔, 过期秒数]:
 #   每 CACHE_DELETE_FREQUENCY 秒检查一次, 创建时间超过 CACHE_DELETE_AGE 秒的文件删掉。
-# 这里取「每 15 分钟检查一次、超过 2 小时删除」。批量成片会在缓存里各留一份完整拷贝,
+# 默认「每 15 分钟检查一次、超过 2 小时删除」。批量成片会在缓存里各留一份完整拷贝,
 # 实测 7 个目标就堆到 3.5 GB, 长批量跑下来能到十几 GB, 所以过期时间不能放太长。
 # 另外服务停止时(重启或关窗)gradio 会清空整个缓存, 所以重启后素材需要重新选一次。
-# 注意清理只作用于缓存里的副本 —— 输出目录(D:\facefusion\output)里的成片是原文件, 不受影响。
-# 需要更激进或更保守时可以改这两个值, 也可以把它们接到界面上让用户自己选。
-CACHE_DELETE_FREQUENCY = 900
-CACHE_DELETE_AGE = 7200
+# 注意清理只作用于缓存里的副本 —— 输出目录里的成片是原文件, 不受影响。
+# 这两个值由项目根目录 facecopyer.ini 的 cache_check_interval / cache_expire_seconds 决定,
+# 启动器把它们注入成下面的环境变量; 直接跑 facefusion.py 时用代码里的默认值。
+def _read_env_int(name : str, fallback : int) -> int:
+	try:
+		return int(os.environ.get(name) or fallback)
+	except ValueError:
+		return fallback
+
+
+CACHE_DELETE_FREQUENCY = _read_env_int('FACECOPYER_CACHE_CHECK_INTERVAL', 900)
+CACHE_DELETE_AGE = _read_env_int('FACECOPYER_CACHE_EXPIRE_SECONDS', 7200)
 
 
 def load_ui_layout_module(ui_layout : str) -> Any:

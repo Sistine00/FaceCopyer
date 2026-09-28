@@ -14,35 +14,41 @@
 
 ## 新机器部署
 
-当前所有路径都是 Windows 绝对路径，写死在 `run.bat`、`_iopaint_start.py`、`_port_clean.py` 和 `facefusion.ini` 里。如果换机器或换盘符，需要同步修改这些位置。
+机器相关的设置已经全部收到项目根目录的 `facecopyer.ini`（模板 `facecopyer.ini.example`，首次启动自动生成）。`run.bat` 只负责找到 Python，真正的启动逻辑在 `_facecopyer_launcher.py`；`_iopaint_start.py`、`_port_clean.py` 也改为从同一份配置取参数。**因此换机器、换盘符、换目录都不需要改代码**，改 `facecopyer.ini` 就行，或者双击 `setup.bat` 走向导。
 
 部署步骤：
 
-**准备主环境。** 在 `D:\facefusion\venv` 中安装 Python 3.12 环境，安装 `source\requirements.txt`。注意两处与声明文件不一致的地方：`requirements.txt` 声明的是 CPU 版 `onnxruntime==1.29.0`，实际运行用的是 GPU 版 `onnxruntime-gpu 1.24.4`，直接按声明安装会退化成 CPU 推理；`Pillow` 未在声明文件中，目前靠 gradio 间接引入。建议修正声明文件后再安装。
+**准备主环境。** 建一个 Python 3.12 虚拟环境（目录名默认 `venv`，可改），安装 `source\requirements.txt`。注意两处与声明文件不一致的地方：`requirements.txt` 声明的是 CPU 版 `onnxruntime==1.29.0`，实际运行用的是 GPU 版 `onnxruntime-gpu 1.24.4`，直接按声明安装会退化成 CPU 推理；`Pillow` 未在声明文件中，目前靠 gradio 间接引入。建议修正声明文件后再安装。
 
-**准备去遮挡环境。** 在 `D:\facefusion\iopaint_venv` 中单独建立环境，安装 IOPaint 1.6.0，并把 torch 与 torchvision 换成 CUDA 构建：
+**准备去遮挡环境。** 单独建一个环境（目录名默认 `iopaint_venv`），安装 IOPaint 1.6.0，并把 torch 与 torchvision 换成 CUDA 构建：
 
 ```
-D:\facefusion\iopaint_venv\Scripts\python.exe -m pip install ^
+<项目根>\iopaint_venv\Scripts\python.exe -m pip install ^
   --index-url https://mirror.sjtu.edu.cn/pytorch-wheels/cu126 ^
   torch==2.14.0+cu126 torchvision==0.29.0+cu126
 ```
 
-这个环境与主环境相互隔离，不要混用依赖。国内直连 PyTorch 官方源极慢（实测 0.49 MB/s），务必使用镜像。
+这个环境与主环境相互隔离，不要混用依赖。国内直连 PyTorch 官方源极慢（实测 0.49 MB/s），务必使用镜像。不装这个环境程序也能跑，只是没有去遮挡功能，启动时会打印重建命令。
 
-**放置模型。** IOPaint 的模型放在 `D:\facefusion\iopaint_models`，至少需要 `torch\hub\checkpoints\big-lama.pt`。FaceCopyer 自身的模型会在首次运行时自动下载。
+**放置模型。** IOPaint 的模型放在 `iopaint_models`，至少需要 `torch\hub\checkpoints\big-lama.pt`。FaceCopyer 自身的模型会在首次运行时自动下载到 `source\.assets`。
 
 **重新打前端补丁。** 这一步容易漏。执行根目录的 `_patch_bundle.py` 与 `_patch_bundle2.py`，它们会修改 `venv` 内 Gradio 的前端构建产物。如果跳过这一步，手动描边画布和图片加载会出现已知的前端异常，具体原理见 `PITFALLS.md`。注意补丁脚本里写死了带构建哈希的文件名，升级 Gradio 后需要先确认文件名。
 
-**启动。** 双击 `run.bat`，它会清理 7860 端口、拉起 IOPaint、启动界面并打开浏览器。
+**配置。** 双击 `setup.bat` 逐项确认端口、目录、去遮挡设备、缓存策略。想先看体检结果可以先跑 `run.bat --check`，它会报告主环境、去遮挡环境、去遮挡模型、GPU 加速、模型仓库五项状态。
+
+**启动。** 双击 `run.bat`，它会读取配置、清理界面端口、拉起 IOPaint、启动界面并打开浏览器。
 
 ## 必须保留的文件
 
-根目录下有四个以下划线开头的脚本，命名沿用了开发期的临时文件习惯，但它们不是临时文件：
+根目录下有几个以下划线开头的文件，命名沿用了开发期的临时文件习惯，但它们不是临时文件：
 
-`_iopaint_start.py` 由 `run.bat` 调用，负责启动 IOPaint 服务，内含 CUDA 可用性探测与 CPU 回退逻辑。设备选择可以通过环境变量 `IOPAINT_DEVICE` 覆盖，取值 `auto`（默认）、`cpu` 或 `cuda`。
+`_facecopyer_config.py` 是配置加载器，把 `facecopyer.ini` 读成一组带默认值的设置，并提供 `Settings.environment()` 把配置映射成程序需要的环境变量。只用标准库，可被任何 Python 直接 import。
 
-`_port_clean.py` 由 `run.bat` 调用，启动前清理 7860 端口上残留的旧进程。
+`_facecopyer_launcher.py` 是启动器，`run.bat` 的实际执行体。负责：读配置、生成缺失的配置、环境体检（`--check`）、部署向导（`--setup`）、清端口、把配置里的输出/临时/批量目录播种到 `source\facefusion.ini`、拉起 IOPaint、最后启动界面。
+
+`_iopaint_start.py` 负责启动 IOPaint 服务，内含 CUDA 可用性探测与 CPU 回退逻辑。参数来自配置，也可以用环境变量 `IOPAINT_DEVICE` 覆盖。
+
+`_port_clean.py` 启动前清理被占用的端口，端口值来自配置。
 
 `_patch_bundle.py` 与 `_patch_bundle2.py` 是 Gradio 前端问题的修复工具，重装或升级 Gradio 之后必须重新执行。
 

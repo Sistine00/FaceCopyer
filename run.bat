@@ -1,27 +1,46 @@
 @echo off
+setlocal
 title FaceCopyer Launcher
+cd /d "%~dp0"
+
+rem ---------------------------------------------------------------------------
+rem  This launcher is path independent: it works no matter where the project is
+rem  copied to. All machine specific settings live in facecopyer.ini (see
+rem  setup.bat). The Python entry point does the real work.
+rem ---------------------------------------------------------------------------
+
+set "PY_EXE="
+if exist "venv\Scripts\python.exe" set "PY_EXE=venv\Scripts\python.exe"
+if not defined PY_EXE if exist ".venv\Scripts\python.exe" set "PY_EXE=.venv\Scripts\python.exe"
+
+if defined PY_EXE goto launch
+
+where py >nul 2>nul
+if not errorlevel 1 set "PY_EXE=py -3"
+if defined PY_EXE goto launch
+
+where python >nul 2>nul
+if not errorlevel 1 set "PY_EXE=python"
+if defined PY_EXE goto launch
+
 echo ============================================
-echo   FaceCopyer 1.0.0 - One Click Start
-echo   GPU: CUDA 12 (onnxruntime-gpu)
+echo  [ERROR] No Python interpreter found
+echo.
+echo  FaceCopyer needs Python 3.10 or newer.
+echo    1. install it from https://www.python.org/downloads/
+echo    2. run setup.bat once to finish the configuration
 echo ============================================
 echo.
-cd /d "D:\facefusion\source"
-if not exist "D:\facefusion\venv\Scripts\python.exe" (
-    echo [ERROR] Virtual environment not found. Please redeploy.
-    pause
-    exit /b 1
-)
-set "PATH=D:\facefusion\venv\Lib\site-packages\nvidia\cuda_runtime\bin;D:\facefusion\venv\Lib\site-packages\nvidia\cublas\bin;D:\facefusion\venv\Lib\site-packages\nvidia\cudnn\bin;D:\facefusion\venv\Lib\site-packages\nvidia\cufft\bin;D:\facefusion\venv\Scripts;%PATH%"
-set "FACEFUSION_DISABLE_NSFW=1"
-"D:\facefusion\venv\Scripts\python.exe" "D:\facefusion\_port_clean.py"
+pause
+exit /b 1
+
+:launch
+%PY_EXE% "_facecopyer_launcher.py" %*
+set "EXITCODE=%ERRORLEVEL%"
+
+if defined FACECOPYER_QUIET exit /b %EXITCODE%
+
 echo.
-echo [INFO] Starting IOPaint occlusion-removal service...
-"D:\facefusion\iopaint_venv\Scripts\python.exe" "D:\facefusion\_iopaint_start.py"
-echo.
-echo [INFO] Starting FaceCopyer, browser will open automatically...
-echo [INFO] Close this window or press Ctrl+C to stop.
-echo.
-"D:\facefusion\venv\Scripts\python.exe" facefusion.py run --open-browser
-echo.
-echo [DONE] Program exited. Press any key to close.
+echo [DONE] FaceCopyer exited with code %EXITCODE%. Press any key to close.
 pause >nul
+exit /b %EXITCODE%

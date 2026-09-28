@@ -3,9 +3,11 @@ FaceCopyer
 
 > 本地离线换脸工具，支持图片与视频批量处理。
 
-这里是 **FaceCopyer 1.0.0** 的代码目录。面向使用者的说明、目录结构、运行环境与许可信息，请看仓库根目录的 `README.md`；界面操作教程见根目录的 `使用教程.html`。
+这里是 **FaceCopyer 1.0.0** 的代码目录。面向使用者的说明、部署步骤、配置项与许可信息，请看仓库根目录的 `README.md`；界面操作教程见根目录的 `使用教程.html`。
 
-本目录的代码底座是开源项目 [FaceFusion](https://github.com/facefusion/facefusion) 3.9.0（OpenRAIL-AS 许可，作者 Henry Ruhs）。Python 包名沿用了上游的 `facefusion`，因此你会在这里看到大量 `from facefusion import ...`，这是正常的，与界面和程序名已改为 FaceCopyer 不冲突。
+平时不要直接运行这里的 `facefusion.py`：本机相关的设置（端口、输出目录、临时目录、CUDA 库路径、NSFW 开关等）由根目录的 `run.bat` → `_facecopyer_launcher.py` 按 `facecopyer.ini` 注入成环境变量后再启动，直接运行会缺少这些注入，可能出现找不到 CUDA 库或输出路径为空。
+
+本目录的代码底座是开源项目 [FaceFusion](https://github.com/facefusion/facefusion) 3.9.0（OpenRAIL-AS 许可，作者 Henry Ruhs）。FaceCopyer 在其上做了二次开发（遮挡去除、手动描边、关键点继承、中文界面、批量处理、失败提示、垃圾清理、可配置化部署）。Python 包名沿用了上游的 `facefusion`，因此你会在这里看到大量 `from facefusion import ...`，这是正常的，与程序对外名称已改为 FaceCopyer 不冲突。
 
 
 命令行用法

@@ -29,6 +29,30 @@
 
 代码中大量使用 `PIL`，但 `Pillow` 未在 `requirements.txt` 中声明，目前由 gradio 间接引入。若上游调整依赖，可能出现 `Pillow` 缺失。
 
+## 本机设置抽取（部署可移植性）
+
+改造前，`run.bat`、`_iopaint_start.py`、`_port_clean.py` 和 `source\facefusion.ini` 里写死了 `D:\facefusion\...`、7860 / 8081 端口、`venv` / `iopaint_venv` 目录名，换一台机器必须改代码。现在这些全部收进项目根目录的 `facecopyer.ini`。
+
+| 文件 | 角色 |
+| --- | --- |
+| `facecopyer.ini.example` | 带注释的配置模板，随仓库提交 |
+| `facecopyer.ini` | 本机实际配置，首次启动自动生成，已加入 `.gitignore` |
+| `_facecopyer_config.py` | 配置加载器。`SPEC` 定义「规范键 → (段, 选项, 默认值)」，`Settings` 负责类型转换、相对路径解析与派生路径，`Settings.environment()` 把配置映射成环境变量 |
+| `_facecopyer_launcher.py` | 启动器。`--setup` 走部署向导，`--check` 只打印设置与体检结果，默认动作是启动；还负责把配置播种进 `source\facefusion.ini` 的 `[paths]` |
+| `setup.bat` | 向导入口，内部 `call run.bat --setup`，复用同一套 Python 探测逻辑 |
+| `run.bat` | 只做一件事：找到 Python（先 venv，再 `py -3`，再 `python`），然后把控制权交给启动器 |
+
+配置传到程序里的路径是「`facecopyer.ini` → 启动器 → 环境变量 / `source\facefusion.ini`」，对应的代码改动：
+
+| 位置 | 改法 |
+| --- | --- |
+| `facefusion\iopaint_remove.py` | 端口与地址改读 `IOPAINT_PORT` / `IOPAINT_URL`；顺手修掉 `is_iopaint_available()` 把 inpaint 地址当 base 用的老 bug |
+| `facefusion\uis\core.py` | 缓存清理参数改读 `FACECOPYER_CACHE_CHECK_INTERVAL` / `FACECOPYER_CACHE_EXPIRE_SECONDS` |
+| `facefusion\choices.py` | 默认下载源顺序改读 `FACECOPYER_DOWNLOAD_PROVIDERS` |
+| `facefusion\uis\components\output.py` | 默认输出根目录由写死的 `D:\facefusion\output` 改为按文件位置推算 |
+| `facefusion.py` | `GRADIO_TEMP_DIR` 改用 `setdefault`，让配置里的 `temp_dir` 生效；直接运行本文件时才退回 `<项目根>\temp\gradio` |
+| `source\facefusion.ini` | `[paths]` 全部留空，由启动器按配置播种；且只播种空值，界面上改过的路径不会被覆盖 |
+
 ## 代码改动清单
 
 ### 新增模块

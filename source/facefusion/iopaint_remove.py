@@ -18,8 +18,22 @@ from facefusion.filesystem import create_directory, get_file_extension, get_file
 from facefusion.types import VisionFrame
 from facefusion.vision import read_image
 
-IOPAINT_PORT = 8081
-IOPAINT_URL = os.environ.get('IOPAINT_URL', 'http://127.0.0.1:{}/api/v1/inpaint'.format(IOPAINT_PORT))
+def _read_port() -> int:
+    try:
+        return int(os.environ.get('IOPAINT_PORT') or 8081)
+    except ValueError:
+        return 8081
+
+
+# 端口与地址都从环境变量读, 由 _facecopyer_launcher.py 按 facecopyer.ini 注入。
+# 这样端口可以从配置里改, 不必动代码。
+IOPAINT_PORT = _read_port()
+if (os.environ.get('IOPAINT_URL') or '').strip():
+    IOPAINT_URL = os.environ['IOPAINT_URL'].strip()
+    IOPAINT_BASE_URL = IOPAINT_URL.split('/api/')[0].rstrip('/') or 'http://127.0.0.1:{}'.format(IOPAINT_PORT)
+else:
+    IOPAINT_BASE_URL = 'http://127.0.0.1:{}'.format(IOPAINT_PORT)
+    IOPAINT_URL = IOPAINT_BASE_URL + '/api/v1/inpaint'
 CACHE_DIRECTORY = os.path.normpath(os.path.join(os.path.dirname(__file__), '..', '.occlusion_removed'))
 
 # 去遮挡后的空白脸上已经没有可见五官, 换脸时重新检测的 landmark 必然不准(导致五官错位)。
@@ -131,7 +145,7 @@ def detect_target_landmarks(vision_frame : VisionFrame, box, lm5_raw, mask = Non
 
 def is_iopaint_available() -> bool:
     try:
-        base = os.environ.get('IOPAINT_URL', 'http://127.0.0.1:{}/api/v1/server-config'.format(IOPAINT_PORT))
+        base = IOPAINT_BASE_URL + '/api/v1/server-config'
         req = urllib.request.Request(base, method = 'GET')
         resp = urllib.request.urlopen(req, timeout = 5)
         return resp.status == 200

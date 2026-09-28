@@ -1,4 +1,5 @@
 import logging
+import os
 from typing import List, Sequence, get_args
 
 from facefusion.common_helper import create_float_range, create_int_range
@@ -146,7 +147,17 @@ download_provider_set : DownloadProviderSet =\
 # 本机实测: 同一个 1718947 字节的模型, 直连 github release 只有约 7 KB/s(要等数分钟),
 # 走 hf-mirror 有 283 KB/s(6 秒), 相差近 40 倍。走 github 时界面会长时间停在 processing,
 # 看起来就像卡死, 所以把 huggingface 排在首位; 镜像不可达时仍会自动回退到 github。
-download_providers : List[DownloadProvider] = [ 'huggingface', 'github' ]
+# 顺序可以在项目根目录 facecopyer.ini 的 download_providers 里改, 启动器会把结果注入下面的环境变量。
+def get_default_download_providers() -> List[DownloadProvider]:
+	raw = (os.environ.get('FACECOPYER_DOWNLOAD_PROVIDERS') or '').strip()
+	if not raw:
+		return [ 'huggingface', 'github' ]
+	allowed = get_args(DownloadProvider)
+	ordered = [ item.strip() for item in raw.replace(';', ',').split(',') if item.strip() in allowed ]
+	return ordered or [ 'huggingface', 'github' ]
+
+
+download_providers : List[DownloadProvider] = get_default_download_providers()
 download_scopes : List[DownloadScope] = list(get_args(DownloadScope))
 
 video_memory_strategies : List[VideoMemoryStrategy] = list(get_args(VideoMemoryStrategy))

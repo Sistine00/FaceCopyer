@@ -1,4 +1,3 @@
-import tempfile
 from argparse import ArgumentParser, HelpFormatter
 from functools import partial
 
@@ -7,7 +6,7 @@ from facefusion import config, metadata, state_manager, translator
 from facefusion.common_helper import create_float_metavar, create_int_metavar, get_first, get_last
 from facefusion.execution import get_available_execution_providers
 from facefusion.ffmpeg import get_available_encoder_set
-from facefusion.filesystem import get_file_name, resolve_file_paths
+from facefusion.filesystem import get_file_name, resolve_file_paths, resolve_relative_path
 from facefusion.jobs import job_store
 from facefusion.processors.core import get_processors_modules
 from facefusion.sanitizer import sanitize_int_range, sanitize_job_id
@@ -33,7 +32,9 @@ def create_config_path_program() -> ArgumentParser:
 def create_temp_path_program() -> ArgumentParser:
 	program = ArgumentParser(add_help = False)
 	group_paths = program.add_argument_group('paths')
-	group_paths.add_argument('--temp-path', help = translator.get('help.temp_path'), default = config.get_str_value('paths', 'temp_path', tempfile.gettempdir()))
+	# temp_path 的兜底值不用系统临时目录, 而是 <项目根>\temp:
+	# 处理视频的中间帧会占很大空间, 放系统盘容易把 C 盘写满, 换机部署时也不该跟着走。
+	group_paths.add_argument('--temp-path', help = translator.get('help.temp_path'), default = config.get_str_value('paths', 'temp_path', resolve_relative_path('../../temp')))
 	job_store.register_job_keys([ 'temp_path' ])
 	return program
 

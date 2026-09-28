@@ -120,6 +120,7 @@
     <h1>FaceCopyer 换脸使用教程</h1>
     <div class="sub">本地离线人像换脸 · GPU 加速 · 中文界面 · 支持图片与视频批量处理</div>
     <span class="tag">FaceCopyer 1.0.0</span>
+    <span class="tag">基于 FaceFusion 3.9.0 改进</span>
     <span class="tag">界面已汉化</span>
     <span class="tag">批量支持视频</span>
     <span class="tag">含遮挡处理</span>
@@ -164,8 +165,8 @@
   <div class="card">
     <ol class="steps">
       <li>
-        <b>双击 <code>D:\facefusion\run.bat</code></b>
-        <p class="muted">启动脚本会自动：① 加载 CUDA 库路径 ② 清理占用 7860 端口的旧进程 ③ 拉起 IOPaint 去遮挡服务（8081 端口）④ 启动界面并自动打开浏览器。</p>
+        <b>双击项目根目录的 <code>run.bat</code></b>
+        <p class="muted">启动脚本会自动：① 读取本机配置 ② 加载 CUDA 库路径 ③ 清理占用界面端口的旧进程 ④ 拉起 IOPaint 去遮挡服务 ⑤ 启动界面并自动打开浏览器。刚拿到项目时，先双击一次 <code>setup.bat</code> 走一遍部署向导。</p>
       </li>
       <li>
         <b>等待浏览器自动打开 <code>http://127.0.0.1:7860</code></b>
@@ -176,7 +177,8 @@
         <p class="muted">在那个黑色运行窗口里按 <code>Ctrl + C</code> 即可停止服务。建议用这种方式关闭，不要直接点窗口右上角的叉号。</p>
       </li>
     </ol>
-    <div class="warn"><strong>注意：</strong>本工具固定使用 <strong>7860</strong> 端口。如果你同时运行了别的占用 7860 端口的程序，run.bat 会自动结束它——请提前保存好其它项目的工作。</div>
+    <div class="warn"><strong>注意：</strong>界面默认使用 <strong>7860</strong> 端口，去遮挡服务默认用 <strong>8081</strong>。如果这两个端口正被别的程序占用，run.bat 会先结束占用它的进程——请提前保存好其它项目的工作。端口可以在项目根目录的 <code>facecopyer.ini</code> 里改。</div>
+    <div class="note"><strong>换了机器或换了目录：</strong>端口、输出目录、临时目录、去遮挡设备、缓存过期时间、模型下载源这些与本机相关的设置，全部写在项目根目录的 <code>facecopyer.ini</code> 里，双击 <code>setup.bat</code> 可以逐项重新配置。想先看当前生效的设置和环境体检结果，运行 <code>run.bat --check</code>（只打印，不启动）。</div>
     <div class="note"><strong>为什么建议用 Ctrl + C 关闭：</strong>正常停止时程序会把上传与预览产生的临时缓存整个清空，下次启动更干净；直接关窗口属于强制中断，缓存清不掉，只能等它自己过期（见第十二章）。两种方式都不影响已经处理好的成片。</div>
   </div>
 
@@ -296,7 +298,7 @@
     <b class="t">图片输出目录 / 视频输出目录</b>
     <span class="loc">位置：中栏「批量处理」下方</span>
     <p>成片按类型分开存放：图片进图片目录，视频和动态 WebP 进视频目录。两个路径都可以直接改写，或点「选择目录」指定别处；「打开目录」会用资源管理器打开当前文件夹。路径会保存下来，重启后仍是上次的位置。</p>
-    <div class="tip">默认分别是 <code>D:\facefusion\output\picture</code> 和 <code>D:\facefusion\output\video</code>。</div>
+    <div class="tip">默认分别是 <code>&lt;项目根&gt;\output\picture</code> 和 <code>&lt;项目根&gt;\output\video</code>。根目录可以在 <code>facecopyer.ini</code> 的 <code>output_dir</code> 里改，也可以在界面上直接改这两个框。</div>
   </div>
 
   <div class="mod">
@@ -429,7 +431,7 @@
   </div>
   <p>全部跑完后会在最上方插入汇总，并列出没换到脸的文件名：</p>
   <div class="card">
-    <pre style="margin:0;font-family:Consolas,Menlo,monospace;font-size:13px;line-height:1.9;color:#263238">批量完成 | 输出文件夹：D:\facefusion\output\video
+    <pre style="margin:0;font-family:Consolas,Menlo,monospace;font-size:13px;line-height:1.9;color:#263238">批量完成 | 输出文件夹：&lt;项目根&gt;\output\video
 共 76 个目标：70 个已换脸，3 个未检测到人脸，3 个已跳过
 未检测到人脸的目标：xxx.webp , yyy.webp , zzz.webp</pre>
   </div>
@@ -475,7 +477,7 @@
       <li>源图用<strong>无遮挡的正面照</strong>（眼睛、眉毛清晰）——换完后这双眼睛就出现在原来贴纸的位置。</li>
       <li>目标放带遮挡的图，点「开始批量」或单张流程点「开始」。</li>
     </ol>
-    <div class="tip">去遮挡由随 <code>run.bat</code> 一起启动的 IOPaint 服务（8081 端口）完成。它未运行时程序会跳过这一步、直接整脸覆盖。</div>
+    <div class="tip">去遮挡由随 <code>run.bat</code> 一起启动的 IOPaint 服务完成（默认 8081 端口，可在 <code>facecopyer.ini</code> 里改）。它未运行时程序会跳过这一步、直接整脸覆盖。</div>
   </div>
 
   <h4>方法二：保留遮挡，只换可见部分</h4>
@@ -522,8 +524,8 @@
   <p>程序运行过程中会产生几类临时文件，都不影响成片，可以随时清理。</p>
   <table>
     <tr><th>内容</th><th>位置</th><th>说明</th></tr>
-    <tr><td>上传与预览副本</td><td><code>D:\facefusion\temp\gradio</code></td><td>浏览器上传的素材副本，以及成片在界面里显示时另存的一份拷贝</td></tr>
-    <tr><td>临时帧残留</td><td><code>D:\facefusion\temp\facefusion\目标名</code></td><td>处理视频时的中间文件，正常跑完会自动删除</td></tr>
+    <tr><td>上传与预览副本</td><td><code>&lt;项目根&gt;\temp\gradio</code></td><td>浏览器上传的素材副本，以及成片在界面里显示时另存的一份拷贝</td></tr>
+    <tr><td>临时帧残留</td><td><code>&lt;项目根&gt;\temp\facefusion\目标名</code></td><td>处理视频时的中间文件，正常跑完会自动删除</td></tr>
     <tr><td>动态 WebP 转码结果</td><td><code>source\.webp_converted</code></td><td>会动的 webp 转出的 mp4</td></tr>
     <tr><td>去遮挡结果</td><td><code>source\.occlusion_removed</code></td><td>去遮挡后的图与配套关键点文件</td></tr>
     <tr><td>任务记录</td><td><code>source\.jobs</code></td><td>每次处理的历史记录</td></tr>
@@ -532,7 +534,7 @@
   <h4>自动过期</h4>
   <div class="card">
     <ul>
-      <li>上传与预览那部分缓存<strong>每 15 分钟检查一次，超过 2 小时的自动删除</strong>。</li>
+      <li>上传与预览那部分缓存<strong>默认每 15 分钟检查一次，超过 2 小时的自动删除</strong>。这两个时间在 <code>facecopyer.ini</code> 的 <code>cache_check_interval</code> / <code>cache_expire_seconds</code> 里改，磁盘紧张时可以调短（例如 1800 秒）。</li>
       <li>正常停止程序（黑色窗口里按 <code>Ctrl + C</code>）时，这部分缓存会被整个清空，所以重启后需要重新选一次素材。</li>
       <li>输出目录里的成片是原文件，不在清理范围内，永远不会被自动删掉。</li>
     </ul>
@@ -541,12 +543,12 @@
   <h4>手动清理</h4>
   <p>「清理垃圾文件」面板可以随时手动清，五个勾选项见第五章。清理前会等当前任务结束，并跳过本次会话正在使用的文件，清完会告诉你释放了多少空间。</p>
 
-  <div class="warn"><strong>批量处理很占缓存空间。</strong>每个成片都会在缓存里留一份完整拷贝（界面要用它播放），实测 7 个 100–300 MB 的成片就堆到 3.5 GB。76 个目标能堆出十几 GB，所以缓存目录已经被放到 D 盘（<code>D:\facefusion\temp</code>），不要把它改回 C 盘。长批量跑完后可以到「清理垃圾文件」里勾「动态 WebP 转码缓存」等项清一次。</div>
+  <div class="warn"><strong>批量处理很占缓存空间。</strong>每个成片都会在缓存里留一份完整拷贝（界面要用它播放），实测 7 个 100–300 MB 的成片就堆到 3.5 GB，76 个目标能堆出十几 GB。缓存位置由 <code>facecopyer.ini</code> 的 <code>temp_dir</code> 决定，<strong>务必指向数据盘而不是 C 盘</strong>；换台机器部署时记得在 <code>setup.bat</code> 里改这一项。长批量跑完后也可以到「清理垃圾文件」里勾「动态 WebP 转码缓存」等项清一次。</div>
 
   <h2 id="cap13">十三、常见问题排查</h2>
   <div class="card">
     <h3>1. 双击 run.bat 没反应或闪退</h3>
-    <p>确认 <code>D:\facefusion\venv\Scripts\python.exe</code> 存在；不存在说明虚拟环境损坏，需要重新部署。</p>
+    <p>先在命令行里运行 <code>run.bat --check</code>，它会打印当前生效的设置和体检结果，缺什么一目了然。最常见的是主环境解释器不存在（说明虚拟环境没建好或被删了），按提示重建即可；环境目录名不是默认的 <code>venv</code> 时，要在 <code>facecopyer.ini</code> 的 <code>venv_dir</code> 里改。</p>
 
     <h3>2. 浏览器没自动打开</h3>
     <p>手动在地址栏输入 <code>http://127.0.0.1:7860</code> 访问即可。</p>
@@ -558,7 +560,7 @@
     <p>多半是目标里没检测到人脸，程序把画面原样输出了。常见原因有三种：人脸在画面里太小（把 1132×1080 的照片整体缩到 384 宽，人脸只剩约 30 像素就检测不到）；遮挡严重（宽帽檐压住额头并遮暗眼睛）；画面里根本没有清晰正脸。判断方法：看批量进度里那一行的帧计数——写「未检测到可换的人脸」就属于这种情况。处理办法是换更清晰、人脸占比更大的素材，或先用右栏「预览」确认能框出人脸。</p>
 
     <h3>5. 报「内容审查 / NSFW」相关错误</h3>
-    <p>run.bat 已默认设置 <code>FACEFUSION_DISABLE_NSFW=1</code> 关闭误判审查。如确实需要审查，可去掉该行。</p>
+    <p>去遮挡与换脸默认已关闭 NSFW 内容检测（<code>facecopyer.ini</code> 里的 <code>disable_nsfw = yes</code>）。如果把它改成 <code>no</code>，就会恢复上游的检测，正常素材也可能被拦。</p>
 
     <h3>6. 换脸后脸部模糊</h3>
     <p>勾选「人脸增强」并调高混合度（见第七章）；把「换脸像素提升」调高；源脸换成分辨率更高的正脸照片。</p>
@@ -573,7 +575,7 @@
     <p>确认左栏「推理后端」里 <code>cuda</code> 已勾选（走 GPU，选 cpu 会慢到无法实用）；减少同时勾选的处理器；视频可先用「修剪帧」只跑一小段试效果。</p>
 
     <h3>10. 批量结果找不到</h3>
-    <p>看「批量进度」最后一行的输出文件夹提示，或到中栏「视频输出目录」「图片输出目录」点「打开目录」。视频成片默认在 <code>D:\facefusion\output\video</code>，图片在 <code>output\picture</code>。</p>
+    <p>看「批量进度」最后一行的输出文件夹提示，或到中栏「视频输出目录」「图片输出目录」点「打开目录」。默认视频在 <code>&lt;项目根&gt;\output\video</code>，图片在 <code>&lt;项目根&gt;\output\picture</code>。</p>
 
     <h3>11. 点「选择源/目标文件夹」没反应</h3>
     <p>该按钮会弹出系统文件夹选择窗口，确认没有被浏览器弹窗拦截；窗口没出来时，改用「手动填路径 + 载入」的方式。</p>
@@ -587,13 +589,13 @@
 
   <h2 id="cap14">十四、关于「离线使用」</h2>
   <div class="note">
-    <p><b>当前状态：</b>常用模型（换脸、人脸检测与关键点、人脸解析、人脸增强、帧增强等）都已下载到 <code>D:\facefusion\source\.assets\models\</code>，日常换脸可以完全离线进行。模型下拉列表里红色加粗的就是这些已下载的模型。</p>
+    <p><b>当前状态：</b>常用模型（换脸、人脸检测与关键点、人脸解析、人脸增强、帧增强等）都已下载到 <code>&lt;项目根&gt;\source\.assets\models\</code>，日常换脸可以完全离线进行。模型下拉列表里红色加粗的就是这些已下载的模型。</p>
     <p><b>例外：</b>若选了列表里灰色的模型，首次使用时会联网下载一次，之后恢复离线可用。若删除了模型文件，也会重新下载。</p>
   </div>
 
   <footer>
-    本教程随项目存放于 <span class="path">D:\facefusion\使用教程.html</span>，双击即可离线查看。<br>
-    更新日期：2026-09-28 · 覆盖批量视频、实时进度、续跑、失败提示、缓存清理与磁盘策略等新增内容。
+    本教程随项目存放于项目根目录的 <span class="path">使用教程.html</span>，双击即可离线查看。<br>
+    更新日期：2026-09-29 · 覆盖批量视频、实时进度、续跑、失败提示、缓存清理、磁盘策略，以及把本机设置集中到 facecopyer.ini 的可配置化改造。
   </footer>
 </div>
 </body>

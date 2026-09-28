@@ -15,11 +15,18 @@ iopaint_models/
 # 运行时产物
 temp/
 output/
+swap_task/
 source/.jobs/
 source/.webp_converted/
 source/.occlusion_removed/
 source/.temp/
 *.log
+
+# 本机部署配置。仓库里只放带注释的模板 facecopyer.ini.example,
+# 首次运行 run.bat 时会按模板自动生成 facecopyer.ini。
+facecopyer.ini
+facecopyer.ini.bak
+*.bak
 
 # 个人素材, 不上传
 test_photo/

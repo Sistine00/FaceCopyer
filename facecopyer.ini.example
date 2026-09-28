@@ -1,0 +1,62 @@
+; FaceCopyer 1.0.0 本地配置
+;
+; 这个文件描述的是「这台机器怎么部署」, 不属于代码本身, 已经加入 .gitignore。
+; 改完保存, 下次启动生效。任何一项都可以删掉或留空, 程序会退回内置默认值。
+
+[general]
+
+; 项目根目录。留空 = 本文件所在目录。只有把配置放到项目外面时才需要填。
+root = 
+
+; 界面端口。启动时如果被占用, 会先结束占用它的进程。
+ui_port = 7860
+
+; 启动后自动打开浏览器。部署在没有桌面的机器上时改成 no。
+open_browser = yes
+
+; 关闭 NSFW 内容检测。上游的检测模型对正常素材误拦较多, 所以默认关闭。
+; 改成 no 会恢复检测, 可能拦下正常图片。
+disable_nsfw = yes
+
+; 界面缓存的清理策略: 每 N 秒检查一次, 创建超过 M 秒的上传副本与预览拷贝会被删除。
+; 批量处理很占缓存(实测 7 个成片堆到 3.5 GB), 磁盘紧张时把 M 调小, 例如 1800。
+cache_check_interval = 900
+cache_expire_seconds = 7200
+
+; 模型下载源优先级, 逗号分隔, 可选 huggingface / github。
+; 国内直连 github 极慢(实测 7 KB/s, 相差近 40 倍), 所以 huggingface 排前面。
+download_providers = huggingface, github
+
+[paths]
+
+; 下面的路径可以写相对路径(相对 root)或绝对路径。
+
+; 主 Python 环境, 运行 FaceCopyer 本体与界面。
+venv_dir = venv
+
+; 去遮挡环境, 运行 IOPaint。留空表示不启用去遮挡功能。
+iopaint_venv_dir = iopaint_venv
+
+; 临时文件目录。批量处理会在这里堆副本, 建议放数据盘而不是系统盘。
+temp_dir = temp
+
+; 输出目录。成片会写到 <output_dir>/picture 与 <output_dir>/video。
+output_dir = output
+
+; 去遮挡模型目录, 首次使用去遮挡时会自动下载 big-lama.pt 到这里。
+iopaint_models_dir = iopaint_models
+
+; 批量处理面板的默认源图/目标文件夹, 留空即可, 界面上也能选。
+batch_source_dir = 
+batch_target_dir = 
+
+[iopaint]
+
+; 去遮挡服务端口, 仅供程序内部调用, 不需要对外开放。
+port = 8081
+
+; auto / cuda / cpu。auto = 有 CUDA 就用 CUDA, 启动失败会自动回退 CPU。
+device = auto
+
+; 去遮挡服务日志文件。
+log = iopaint_runtime.log

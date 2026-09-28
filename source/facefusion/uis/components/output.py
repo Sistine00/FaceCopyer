@@ -5,11 +5,13 @@ from typing import Optional
 import gradio
 
 from facefusion import state_manager, translator
-from facefusion.filesystem import create_directory, is_directory, is_image, is_video
+from facefusion.filesystem import create_directory, is_directory, is_image, is_video, resolve_relative_path
 from facefusion.uis.core import register_ui_component
 from facefusion.webp_helper import is_animated_webp
 
-DEFAULT_OUTPUT_ROOT = 'D:\\facefusion\\output'
+# 默认输出根目录。按本文件位置推算, 也就是 <项目根>/output, 而不是写死某个盘符,
+# 这样项目放在哪里都能用。界面里改过的路径会写进 source/facefusion.ini 的 paths 段并优先。
+DEFAULT_OUTPUT_ROOT = resolve_relative_path('../../output')
 DEFAULT_OUTPUT_IMAGE_DIRECTORY = os.path.join(DEFAULT_OUTPUT_ROOT, 'picture')
 DEFAULT_OUTPUT_VIDEO_DIRECTORY = os.path.join(DEFAULT_OUTPUT_ROOT, 'video')
 

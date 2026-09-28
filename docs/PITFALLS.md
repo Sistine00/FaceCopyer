@@ -356,6 +356,43 @@ SyntaxWarning: invalid escape sequence '\s'
 
 处理方式是用脚本统一缩进格式，确保同一层级的所有词条缩进一致。由于 `_gen_zh.py` 生成脚本已不在仓库中，目前新增词条需要手工维护，改动后建议立即启动一次界面确认文案正常。
 
+### 「备份再改写」时把源文件读成了空
+
+把 `source\facefusion.ini` 播种输出路径时，最初写成这样：
+
+```python
+with open(path, 'wb') as source, open(path + '.bak', 'wb') as target:
+    target.write(source.read())          # 想备份原文
+with open(path, 'w', encoding = 'utf-8') as handle:
+    parser.write(handle)
+```
+
+问题在 `open(path, 'wb')` 这一句：它以写模式打开，**打开的同时就把原文件截断成 0 字节**。于是 `source.read()` 返回空、备份是空的，随后 `parser.write()` 如果因为任何原因失败，配置就彻底没了。这次实测就踩中了：`facefusion.ini` 和它的 `.bak` 同时变成 0 字节，程序只能按全默认值启动，界面上所有路径设置丢失。
+
+修法是分三步走，并且落盘前先在内存里校验：
+
+```python
+with open(path, 'rb') as handle:          # 先完整读出来
+    original = handle.read()
+buffer = io.StringIO()
+parser.write(buffer)                       # 再在内存里生成新内容
+text = buffer.getvalue()
+if not text.strip():                       # 空内容直接放弃, 不碰原文件
+    return []
+with open(path + '.bak', 'wb') as handle:  # 备份
+    handle.write(original)
+with open(path, 'w', encoding = 'utf-8') as handle:   # 最后才写
+    handle.write(text)
+```
+
+教训是：**“备份 + 改写”不要用两个 `open` 放在同一个 `with` 里省略中间变量**，读模式必须先于写模式。凡是改写用户配置或状态文件，都要先判断新内容非空再落盘。
+
+### 默认输出目录写死盘符
+
+`uis\components\output.py` 里曾经写着 `DEFAULT_OUTPUT_ROOT = 'D:\\facefusion\\output'`。它只在 `source\facefusion.ini` 的 `paths.output_image_path` 为空时兜底，平时看不出来，但换台机器、或者用户清空了配置，成片就会往一个不存在的盘符写。
+
+改成按文件位置推算（`resolve_relative_path` 的参数是相对 `source\facefusion` 这个包的目录）：`resolve_relative_path('../../output')` → `<项目根>\output`。**这里容易多算一层**，写成 `../../../` 会得到 `D:\output`。同类改动改完要打印一次实际值确认，不能只看代码觉得对。
+
 ### 缓存与残留文件不会自动清理
 
 程序只在两处清磁盘：临时帧目录（同一目标下次处理时，以及正常退出时），其余一律不删。实测这台机器上的占用：
